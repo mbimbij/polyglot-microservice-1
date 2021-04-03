@@ -19,6 +19,12 @@ Le but de ce projet est de s'essayer à implémenter un microservice "polyglotte
 
 Ainsi que d'élaborer la pipeline de CI/CD et la "plate-forme" de déploiement (si le terme est correct), typiquement quelque chose comme `Lambda`, `EKS`, et jeter éventuellement un oeil à `AppMesh`, voir si c'est intéressant.
 
+## pièges rencontrés
+
+- il faut abréger le nom des rôles dans la configMap aws-auth
+  - [https://github.com/kubernetes-sigs/aws-iam-authenticator/issues/268](https://github.com/kubernetes-sigs/aws-iam-authenticator/issues/268)
+  - et la documentation n'aide pas: [https://aws.amazon.com/premiumsupport/knowledge-center/eks-api-server-unauthorized-error/](https://aws.amazon.com/premiumsupport/knowledge-center/eks-api-server-unauthorized-error/)
+
 # :gb: Project Description
 
 The goal of this project si to try to implement a "polyglot" microservice:
