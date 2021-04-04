@@ -11,7 +11,7 @@ const UUID = uuidv4();
 // App
 const app = express();
 app.get('/', (req, res) => {
-  res.send('Hello nodeJS '+UUID);
+  res.send('Hello nodeJS - v3 - '+UUID);
 });
 
 app.listen(PORT, HOST);

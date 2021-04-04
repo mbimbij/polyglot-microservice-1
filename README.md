@@ -19,6 +19,20 @@ Le but de ce projet est de s'essayer à implémenter un microservice "polyglotte
 
 Ainsi que d'élaborer la pipeline de CI/CD et la "plate-forme" de déploiement (si le terme est correct), typiquement quelque chose comme `Lambda`, `EKS`, et jeter éventuellement un oeil à `AppMesh`, voir si c'est intéressant.
 
+Déploiement de la pipeline: 
+
+`aws cloudformation deploy   --stack-name polyglot-app-pipeline-stack   --template-file infra/pipeline/pipeline-stack.yml   --capabilities CAPABILITY_NAMED_IAM   --profile dev   --parameter-overrides ApplicationName=polyglot-app GithubRepo=mbimbij/polyglot-microservice-1`
+
+Ajout au `mapRoles` pour effectuer `kubectl` depuis `CodeBuild` :
+
+```yaml
+
+     - rolearn: arn:aws:iam::$ACCOUNT_ID:role/polyglot-app-kubectl-deploy-role
+       username: kubectl-deploy-role
+       groups:
+         - system:masters
+```
+
 ## pièges rencontrés
 
 - il faut abréger le nom des rôles dans la configMap aws-auth

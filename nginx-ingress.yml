@@ -4,12 +4,12 @@ kind: Pod
 metadata:
   creationTimestamp: null
   labels:
-    run: nginx
-  name: nginx
+    run: node-app
+  name: node-app
 spec:
   containers:
-  - image: nginx
-    name: nginx
+  - image: 274314838444.dkr.ecr.eu-west-3.amazonaws.com/demo:{{IMAGE_TAG}}
+    name: node-app
     resources: {}
   dnsPolicy: ClusterFirst
   restartPolicy: Never
@@ -22,16 +22,16 @@ metadata:
   creationTimestamp: null
   labels:
     eks.amazonaws.com/fargate-profile: fp-default
-    run: nginx
-  name: nginx
+    run: node-app
+  name: node-app
 spec:
   ports:
   - port: 80
     protocol: TCP
-    targetPort: 80
+    targetPort: 8080
   selector:
     eks.amazonaws.com/fargate-profile: fp-default
-    run: nginx
+    run: node-app
 status:
   loadBalancer: {}
 
@@ -39,7 +39,7 @@ status:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: ingress-nginx
+  name: ingress-node-app
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
@@ -50,5 +50,5 @@ spec:
         paths:
           - path: /*
             backend:
-              serviceName: nginx
+              serviceName: node-app
               servicePort: 80

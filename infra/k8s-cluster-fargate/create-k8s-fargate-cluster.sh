@@ -5,6 +5,7 @@ CLUSTER_NAME=$1
 
 echo "CLUSTER_NAME: $CLUSTER_NAME"
 echo "ACCOUNT_ID: $ACCOUNT_ID"
+echo "AWS_PROFILE: $AWS_PROFILE"
 
 eksctl create cluster --name $CLUSTER_NAME --region $AWS_REGION --fargate
 
