@@ -25,12 +25,15 @@ Déploiement de la pipeline:
 
 Ajout au `mapRoles` pour effectuer `kubectl` depuis `CodeBuild` :
 
-```yaml
+`kubectl edit configmap aws-auth -n kube-system`
 
-     - rolearn: arn:aws:iam::$ACCOUNT_ID:role/polyglot-app-kubectl-deploy-role
-       username: kubectl-deploy-role
-       groups:
-         - system:masters
+Rajouter la valeur suivante
+
+```yaml
+    - rolearn: arn:aws:iam::$ACCOUNT_ID:role/polyglot-app-kubectl-deploy-role
+      username: kubectl-deploy-role
+      groups:
+        - system:masters
 ```
 
 ## pièges rencontrés
