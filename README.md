@@ -21,7 +21,7 @@ Ainsi que d'élaborer la pipeline de CI/CD et la "plate-forme" de déploiement (
 
 Déploiement de la pipeline: 
 
-`aws cloudformation deploy   --stack-name polyglot-app-pipeline-stack   --template-file infra/pipeline/pipeline-stack.yml   --capabilities CAPABILITY_NAMED_IAM   --profile dev   --parameter-overrides ApplicationName=polyglot-app GithubRepo=mbimbij/polyglot-microservice-1`
+`aws cloudformation deploy   --stack-name polyglot-app-pipeline-stack   --template-file infra/pipeline/pipeline-stack.yml   --capabilities CAPABILITY_NAMED_IAM   --profile dev   --parameter-overrides ApplicationName=polyglot-app GithubRepo=mbimbij/polyglot-microservice-1 KubernetesClusterName=demo-cluster-2`
 
 Ajout au `mapRoles` pour effectuer `kubectl` depuis `CodeBuild` :
 
