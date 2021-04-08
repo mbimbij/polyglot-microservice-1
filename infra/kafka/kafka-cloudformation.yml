@@ -1,0 +1,47 @@
+Parameters:
+  KakfaClusterName:
+    Type: String
+    Description: Application Name
+
+Resources:
+  TestCluster:
+    Type: 'AWS::MSK::Cluster'
+    Properties:
+      ClusterName: ClusterWithAllProperties
+      KafkaVersion: 2.6.1
+      NumberOfBrokerNodes: 3
+      EnhancedMonitoring: PER_BROKER
+      EncryptionInfo:
+        EncryptionAtRest:
+          DataVolumeKMSKeyId: arn:aws:kms:eu-west-3:274314838444:key/1137afad-e18a-4313-a50d-1af94bbc6e2b
+        EncryptionInTransit:
+          ClientBroker: TLS_PLAINTEXT
+          InCluster: true
+#      OpenMonitoring:
+#        Prometheus:
+#          JmxExporter:
+#            EnabledInBroker: "true"
+#          NodeExporter:
+#            EnabledInBroker: "true"
+#      ConfigurationInfo:
+#        Arn: ReplaceWithConfigurationArn
+#        Revision: 1
+#      ClientAuthentication:
+#        Tls:
+#          CertificateAuthorityArnList:
+#            - ReplaceWithCAArn
+      Tags:
+        Environment: Test
+        Owner: QATeam
+      BrokerNodeGroupInfo:
+        BrokerAZDistribution: DEFAULT
+        InstanceType: kafka.t3.small
+#        SecurityGroups:
+#          - ReplaceWithSecurityGroupId
+        StorageInfo:
+          EBSStorageInfo:
+            VolumeSize: 8
+        ClientSubnets:
+          - subnet-1d054550
+          - subnet-7b846013
+          - subnet-c63708bd
