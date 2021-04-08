@@ -16,6 +16,13 @@ Mappings:
       EC2: ec2.amazonaws.com
       EKS: eks.amazonaws.com
       EKSFargatePods: eks-fargate-pods.amazonaws.com
+Parameters:
+#  KakfaClusterName:
+#    Type: String
+#    Description: Kafka Cluster Name
+  KubernetesClusterName:
+    Type: String
+    Description: Kubernetes Cluster Name
 Resources:
   ClusterSharedNodeSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -28,7 +35,7 @@ Resources:
   ControlPlane:
     Type: 'AWS::EKS::Cluster'
     Properties:
-      Name: demo-cluster
+      Name: !Ref KubernetesClusterName
       ResourcesVpcConfig:
         SecurityGroupIds:
           - !Ref ControlPlaneSecurityGroup
@@ -43,6 +50,34 @@ Resources:
         - ServiceRole
         - Arn
       Version: '1.18'
+  EKSFargateProfileDefault:
+    Type: 'AWS::EKS::FargateProfile'
+    Properties:
+      FargateProfileName: !Sub '${KubernetesClusterName}-profile-default'
+      ClusterName: !Ref ControlPlane
+      PodExecutionRoleArn: !GetAtt
+        - FargatePodExecutionRole
+        - Arn
+      Subnets:
+        - !Ref SubnetPrivateEUWEST3A
+        - !Ref SubnetPrivateEUWEST3B
+        - !Ref SubnetPrivateEUWEST3C
+      Selectors:
+        - Namespace: default
+  EKSFargateProfileKubeSystem:
+    Type: 'AWS::EKS::FargateProfile'
+    Properties:
+      FargateProfileName: !Sub '${KubernetesClusterName}-profile-kube-system'
+      ClusterName: !Ref KubernetesClusterName
+      PodExecutionRoleArn: !GetAtt
+        - FargatePodExecutionRole
+        - Arn
+      Subnets:
+        - !Ref SubnetPrivateEUWEST3A
+        - !Ref SubnetPrivateEUWEST3B
+        - !Ref SubnetPrivateEUWEST3C
+      Selectors:
+        - Namespace: kube-system
   ControlPlaneSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -411,3 +446,44 @@ Outputs:
     Value: !Ref VPC
     Export:
       Name: !Sub '${AWS::StackName}::VPC'
+#  KafkaCluster:
+#    Type: 'AWS::MSK::Cluster'
+#    Properties:
+#      ClusterName: ClusterWithAllProperties
+#      KafkaVersion: 2.6.1
+#      NumberOfBrokerNodes: 3
+#      EnhancedMonitoring: PER_BROKER
+#      EncryptionInfo:
+#        EncryptionAtRest:
+#          DataVolumeKMSKeyId: arn:aws:kms:eu-west-3:274314838444:key/1137afad-e18a-4313-a50d-1af94bbc6e2b
+#        EncryptionInTransit:
+#          ClientBroker: TLS_PLAINTEXT
+#          InCluster: true
+#      #      OpenMonitoring:
+#      #        Prometheus:
+#      #          JmxExporter:
+#      #            EnabledInBroker: "true"
+#      #          NodeExporter:
+#      #            EnabledInBroker: "true"
+#      #      ConfigurationInfo:
+#      #        Arn: ReplaceWithConfigurationArn
+#      #        Revision: 1
+#      #      ClientAuthentication:
+#      #        Tls:
+#      #          CertificateAuthorityArnList:
+#      #            - ReplaceWithCAArn
+#      Tags:
+#        Environment: Test
+#        Owner: QATeam
+#      BrokerNodeGroupInfo:
+#        BrokerAZDistribution: DEFAULT
+#        InstanceType: kafka.t3.small
+#        #        SecurityGroups:
+#        #          - ReplaceWithSecurityGroupId
+#        StorageInfo:
+#          EBSStorageInfo:
+#            VolumeSize: 8
+#        ClientSubnets:
+#          - subnet-1d054550
+#          - subnet-7b846013
+#          - subnet-c63708bd
