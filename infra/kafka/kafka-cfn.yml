@@ -2,18 +2,30 @@ Parameters:
   KakfaClusterName:
     Type: String
     Description: Application Name
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnet Ids
+  VolumeSize:
+    Type: Number
+    Description: Kafka Nodes EBS Volume Size
+  KMSKafkaArn:
+    Type: String
+    Description: KMS Kafka Arn
+  NumberOfBrokerNodes:
+    Type: Number
+    Description: Number Of Broker Nodes
 
 Resources:
   KafkaCluster:
     Type: 'AWS::MSK::Cluster'
     Properties:
-      ClusterName: ClusterWithAllProperties
+      ClusterName: !Ref KakfaClusterName
       KafkaVersion: 2.6.1
-      NumberOfBrokerNodes: 3
+      NumberOfBrokerNodes: !Ref NumberOfBrokerNodes
       EnhancedMonitoring: PER_BROKER
       EncryptionInfo:
         EncryptionAtRest:
-          DataVolumeKMSKeyId: arn:aws:kms:eu-west-3:274314838444:key/1137afad-e18a-4313-a50d-1af94bbc6e2b
+          DataVolumeKMSKeyId: !Ref KMSKafkaArn
         EncryptionInTransit:
           ClientBroker: TLS_PLAINTEXT
           InCluster: true
@@ -40,8 +52,5 @@ Resources:
 #          - ReplaceWithSecurityGroupId
         StorageInfo:
           EBSStorageInfo:
-            VolumeSize: 8
-        ClientSubnets:
-          - subnet-1d054550
-          - subnet-7b846013
-          - subnet-c63708bd
+            VolumeSize: !Ref VolumeSize
+        ClientSubnets: !Ref Subnets

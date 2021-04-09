@@ -1,11 +1,12 @@
 #! /bin/bash
 
-source k8s-cluster.env
 CLUSTER_NAME=$1
 
 echo "CLUSTER_NAME: $CLUSTER_NAME"
 echo "ACCOUNT_ID: $ACCOUNT_ID"
 echo "AWS_PROFILE: $AWS_PROFILE"
+echo "APPLICATION_NAME: $APPLICATION_NAME"
+echo "LBC_VERSION: $LBC_VERSION"
 
 eksctl create cluster --name $CLUSTER_NAME --region $AWS_REGION --fargate
 
@@ -48,3 +49,8 @@ helm upgrade -i aws-load-balancer-controller \
     --set region=${AWS_REGION} \
     --set vpcId=${VPC_ID}
 
+eksctl create iamidentitymapping \
+  --cluster  my-app \
+  --arn arn:aws:iam::$ACCOUNT_ID:role/$APPLICATION_NAME-kubectl-deploy-role \
+  --group system:masters \
+  --username $APPLICATION_NAME-role

@@ -12,6 +12,9 @@ Parameters:
   KubernetesClusterName:
     Type: String
     Description: Kubernetes Cluster Name
+  KafkaClusterName:
+    Type: String
+    Description: Kafka Cluster Name
 
 Resources:
   S3Bucket:
@@ -135,6 +138,10 @@ Resources:
                 Action:
                   - codestar-connections:UseConnection
                 Resource: !Ref GithubConnection
+              - Effect: Allow
+                Action:
+                  - kafka:*
+                Resource: "*"
       AssumeRolePolicyDocument:
         Statement:
           - Action: "sts:AssumeRole"
@@ -264,9 +271,15 @@ Resources:
           - Name: AWS_REGION
             Type: PLAINTEXT
             Value: !Ref "AWS::Region"
+          - Name: AWS_ACCOUNTID
+            Type: PLAINTEXT
+            Value: !Ref 'AWS::AccountId'
           - Name: CLUSTER_NAME
             Type: PLAINTEXT
             Value: !Ref KubernetesClusterName
+          - Name: KAFKA_CLUSTER_NAME
+            Type: PLAINTEXT
+            Value: !Ref KafkaClusterName
       Source:
         Type: CODEPIPELINE
         BuildSpec: |
@@ -275,11 +288,14 @@ Resources:
             pre_build:
               commands:
                 - aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
+                - curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+                - helm version --short
             build:
               commands:
                 - IMAGE_TAG=$(git rev-parse --short HEAD)
-                - sed -i "s/{{IMAGE_TAG}}/$IMAGE_TAG/" nginx-ingress.yml
-                - kubectl apply -f nginx-ingress.yml
+                - kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='my-app-kafka-cluster'].ClusterArn" --output text); echo $kafkaClusterArn
+                - kafkaClusterBootstrapBrokers=$(aws kafka get-bootstrap-brokers --cluster-arn $kafkaClusterArn --query "BootstrapBrokerString" --output text | sed 's/,/\\,/g'); echo $kafkaClusterBootstrapBrokers
+                - helm upgrade -i --debug node-app ./nodejs-app/node-app-helm --set kafka.broker=$kafkaClusterBootstrapBrokers --set imageTag=$IMAGE_TAG --set aws.accountid=$AWS_ACCOUNTID
   Pipeline:
     Description: Creating a deployment pipeline for !Ref ApplicationName project in AWS CodePipeline
     Type: 'AWS::CodePipeline::Pipeline'
