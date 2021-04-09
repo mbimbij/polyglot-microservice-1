@@ -8,6 +8,6 @@ const instanceId = uuidv4();
 module.exports = {
   handleRequest: function(){
     var kafkaMessage = eventProducer.sendNotification()
-    return 'Hello nodeJS - v3 - '+instanceId+'. Sent '+kafkaMessage
+    return 'Hello nodeJS - v4 - '+instanceId+'. Sent '+kafkaMessage
   }
 }
