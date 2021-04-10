@@ -18,13 +18,13 @@ spec:
         app: node-app
     spec:
       containers:
-      - image: {{ .Values.aws.accountid }}.dkr.ecr.{{ .Values.aws.region }}.amazonaws.com/demo:{{ .Values.imageTag }}
+      - image: {{ .Values.aws.accountid }}.dkr.ecr.{{ .Values.aws.region }}.amazonaws.com/node-app:{{ .Values.imageTag }}
         name: node-app
         ports:
         - containerPort: {{ .Values.application.port }}
         env:
         - name: CLIENT_ID
-          value: "nodejs-app"
+          value: "node-app"
         - name: TOPIC
           value: {{ .Values.kafka.topic }}
         - name: BROKERS
