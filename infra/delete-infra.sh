@@ -13,6 +13,8 @@ KAFKA_STACK_NAME=$APPLICATION_NAME-kafka
 source infra.env
 
 # delete cicd pipeline
+aws s3 rm s3://$AWS_REGION-$ACCOUNT_ID-node-app-bucket-pipeline --recursive
+aws s3 rm s3://$AWS_REGION-$ACCOUNT_ID-go-app-bucket-pipeline --recursive
 aws cloudformation delete-stack --stack-name $APPLICATION_NAME-node-app-pipeline
 aws cloudformation delete-stack --stack-name $APPLICATION_NAME-go-app-pipeline
 
@@ -20,5 +22,5 @@ aws cloudformation delete-stack --stack-name $APPLICATION_NAME-go-app-pipeline
 aws cloudformation delete-stack --stack-name $KAFKA_STACK_NAME
 
 # delete k8s stack
-cd infra/k8-cluster-fargate/eksctl
+cd k8s-cluster-fargate/eksctl
 ./delete-k8s-fargate-cluster.sh $APPLICATION_NAME
