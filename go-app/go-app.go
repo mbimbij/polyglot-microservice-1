@@ -13,6 +13,7 @@ func main() {
   clientId := os.Getenv("CLIENT_ID")
   groupId := os.Getenv("GROUP_ID")
 
+  fmt.Println("go application v2")
   fmt.Printf("bootstrapServers : %s\n",bootstrapServers )
   fmt.Printf("topic : %s\n",topic )
   fmt.Printf("clientId : %s\n",clientId )
@@ -29,7 +30,6 @@ func main() {
 		panic(err)
 	}
 
-// 	c.SubscribeTopics([]string{"test", "^aRegex.*[Tt]opic"}, nil)
   c.SubscribeTopics([]string{topic}, nil)
 
 	for {
