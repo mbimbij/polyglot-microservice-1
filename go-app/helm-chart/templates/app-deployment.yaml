@@ -26,7 +26,7 @@ spec:
         - name: CLIENT_ID
           value: {{ .Values.kafka.clientId }}
         - name: GROUP_ID
-          value: { { .Values.kafka.groupId } }
+          value: {{ .Values.kafka.groupId }}
         - name: TOPIC
           value: {{ .Values.kafka.topic }}
         - name: BROKERS
