@@ -14,6 +14,12 @@ Parameters:
   NumberOfBrokerNodes:
     Type: Number
     Description: Number Of Broker Nodes
+  BastionHostSubnetId:
+    Type: String
+    Description: Bastion Host Subnet Id
+  BastionHostKeyName:
+    Type: String
+    Description: Bastion Host Key Name
 
 Resources:
   KafkaCluster:
@@ -54,3 +60,28 @@ Resources:
           EBSStorageInfo:
             VolumeSize: !Ref VolumeSize
         ClientSubnets: !Ref Subnets
+  BastionHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Example security group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+  BastionHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0d3f551818b21ed81
+      InstanceType: t2.micro
+      SubnetId: !Ref BastionHostSubnetId
+      KeyName: !Ref BastionHostKeyName
+      SecurityGroups:
+        - !GetAtt
+          - BastionHostSecurityGroup
+          - GroupId
+Outputs:
+  BastionHostSecurityGroupId:
+    Value: !GetAtt
+      - BastionHostSecurityGroup
+      - GroupId

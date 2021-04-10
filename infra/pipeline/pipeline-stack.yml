@@ -30,10 +30,7 @@ Resources:
   GithubConnection:
     Type: AWS::CodeStarConnections::Connection
     Properties:
-      ConnectionName: !Join
-        - '-'
-        - - !Ref ApplicationName
-          - conn
+      ConnectionName: !Ref ApplicationName
       ProviderType: GitHub
   BuildProjectRole:
     Type: 'AWS::IAM::Role'
@@ -293,8 +290,8 @@ Resources:
             build:
               commands:
                 - IMAGE_TAG=$(git rev-parse --short HEAD)
-                - kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='my-app-kafka-cluster'].ClusterArn" --output text); echo $kafkaClusterArn
-                - kafkaClusterBootstrapBrokers=$(aws kafka get-bootstrap-brokers --cluster-arn $kafkaClusterArn --query "BootstrapBrokerString" --output text | sed 's/,/\\,/g'); echo $kafkaClusterBootstrapBrokers
+                - kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='my-app-kafka-cluster'].ClusterArn" --output text)
+                - kafkaClusterBootstrapBrokers=$(aws kafka get-bootstrap-brokers --cluster-arn $kafkaClusterArn --query "BootstrapBrokerString" --output text | sed 's/,/\\,/g')
                 - helm upgrade -i --debug node-app ./nodejs-app/node-app-helm --set kafka.broker=$kafkaClusterBootstrapBrokers --set imageTag=$IMAGE_TAG --set aws.accountid=$AWS_ACCOUNTID
   Pipeline:
     Description: Creating a deployment pipeline for !Ref ApplicationName project in AWS CodePipeline
