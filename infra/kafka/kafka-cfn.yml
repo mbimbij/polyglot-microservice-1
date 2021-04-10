@@ -1,10 +1,10 @@
 Parameters:
   KakfaClusterName:
     Type: String
-    Description: Application Name
-  Subnets:
-    Type: List<AWS::EC2::Subnet::Id>
-    Description: Subnet Ids
+    Description: Kakfa Cluster Name
+  KubernetesStackName:
+    Type: String
+    Description: Kakfa Cluster Stack Name
   VolumeSize:
     Type: Number
     Description: Kafka Nodes EBS Volume Size
@@ -14,19 +14,16 @@ Parameters:
   NumberOfBrokerNodes:
     Type: Number
     Description: Number Of Broker Nodes
-  BastionHostSubnetId:
-    Type: String
-    Description: Bastion Host Subnet Id
   BastionHostKeyName:
     Type: String
     Description: Bastion Host Key Name
 
 Resources:
-  KafkaCluster:
+  KakfaCluster:
     Type: 'AWS::MSK::Cluster'
     Properties:
       ClusterName: !Ref KakfaClusterName
-      KafkaVersion: 2.6.1
+      KafkaVersion: 2.7.0
       NumberOfBrokerNodes: !Ref NumberOfBrokerNodes
       EnhancedMonitoring: PER_BROKER
       EncryptionInfo:
@@ -54,17 +51,46 @@ Resources:
       BrokerNodeGroupInfo:
         BrokerAZDistribution: DEFAULT
         InstanceType: kafka.t3.small
-#        SecurityGroups:
-#          - ReplaceWithSecurityGroupId
+        SecurityGroups:
+          - !Ref KafkaClusterSecurityGroup
         StorageInfo:
           EBSStorageInfo:
             VolumeSize: !Ref VolumeSize
-        ClientSubnets: !Ref Subnets
+        ClientSubnets:
+          Fn::Split:
+            - ','
+            - Fn::ImportValue: !Sub '${KubernetesStackName}::SubnetsPrivate'
+  KafkaClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Kafka Cluster Security Group
+      VpcId:
+        Fn::ImportValue: !Sub '${KubernetesStackName}::VPC'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          SourceSecurityGroupId: !Ref BastionHostSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          SourceSecurityGroupId:
+            Fn::ImportValue: !Sub '${KubernetesStackName}::ClusterSecurityGroupId'
+  KafkaClusterSecurityGroupSelfIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: KafkaClusterSecurityGroup
+    Properties:
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      GroupId: !Ref KafkaClusterSecurityGroup
+      SourceSecurityGroupId: !Ref KafkaClusterSecurityGroup
   BastionHostSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Example security group
-      VpcId: !ImportValue 'eksctl-toto-cluster::VPC'
+      GroupDescription: Bastion Host security group
+      VpcId:
+        Fn::ImportValue: !Sub '${KubernetesStackName}::VPC'
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -75,12 +101,21 @@ Resources:
     Properties:
       ImageId: ami-0d3f551818b21ed81
       InstanceType: t2.micro
-      SubnetId: !Ref BastionHostSubnetId
+      SubnetId: !Select [ "1", !Split [',', !ImportValue 'eksctl-toto-cluster::SubnetsPublic'] ]
       KeyName: !Ref BastionHostKeyName
       SecurityGroupIds:
         - !GetAtt
           - BastionHostSecurityGroup
           - GroupId
+      UserData:
+        Fn::Base64: |
+          #! /bin/bash
+          sudo apt update
+          sudo apt install -y openjdk-14-jdk
+          cd /home/ubuntu
+          wget https://apache.mediamirrors.org/kafka/2.7.0/kafka_2.13-2.7.0.tgz
+          tar -xvzf kafka_2.13-2.7.0.tgz
+          chown -R ubuntu:ubuntu .
 Outputs:
   BastionHostSecurityGroupId:
     Value: !GetAtt
@@ -90,3 +125,5 @@ Outputs:
     Value: !GetAtt
       - BastionHost
       - PublicDnsName
+  KakfaClusterArn:
+    Value: !Ref KakfaCluster
