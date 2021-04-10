@@ -64,6 +64,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Example security group
+      VpcId: !ImportValue 'eksctl-toto-cluster::VPC'
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -76,7 +77,7 @@ Resources:
       InstanceType: t2.micro
       SubnetId: !Ref BastionHostSubnetId
       KeyName: !Ref BastionHostKeyName
-      SecurityGroups:
+      SecurityGroupIds:
         - !GetAtt
           - BastionHostSecurityGroup
           - GroupId
@@ -85,3 +86,7 @@ Outputs:
     Value: !GetAtt
       - BastionHostSecurityGroup
       - GroupId
+  BastionHostPublicDnsName:
+    Value: !GetAtt
+      - BastionHost
+      - PublicDnsName

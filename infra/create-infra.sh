@@ -25,7 +25,7 @@ aws cloudformation deploy  \
 
 # create k8s cluster
 cd k8s-cluster-fargate/eksctl
-./create-k8s-fargate-cluster.sh $KUBERNETES_CLUSTER_NAME
+./create-k8s-fargate-cluster.sh $APPLICATION_NAME
 cd ../..
 
 # create kafka cluster
@@ -61,6 +61,6 @@ aws cloudformation deploy   \
 eksSecurityGroupId=$(aws cloudformation list-exports --region $AWS_REGION --query "Exports[?Name=='$KUBERNETES_STACK_NAME::ClusterSecurityGroupId'].Value" --output text)
 kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='$KAFKA_CLUSTER_NAME'].ClusterArn" --output text)
 kafkaClusterSecurityGroup=$(aws kafka describe-cluster --cluster-arn $kafkaClusterArn --query "ClusterInfo.BrokerNodeGroupInfo.SecurityGroups[]" --output text)
-bastionHostSecurityGroupId=$(aws cloudformation list-exports --region $AWS_REGION --query "Exports[?Name=='KAFKA_STACK_NAME::BastionHostSecurityGroupId'].Value" --output text)
+bastionHostSecurityGroupId=$(aws cloudformation describe-stacks --stack-name $KAFKA_STACK_NAME --query "Stacks[].Outputs[?OutputKey=='BastionHostSecurityGroupId'].OutputValue[]" --output text)
 aws ec2 authorize-security-group-ingress --group-id $kafkaClusterSecurityGroup --source-group $eksSecurityGroupId --port 9092 --protocol tcp
 aws ec2 authorize-security-group-ingress --group-id $kafkaClusterSecurityGroup --source-group $bastionHostSecurityGroupId --port 9092 --protocol tcp
