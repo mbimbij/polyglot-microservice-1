@@ -215,15 +215,15 @@ Resources:
         Image: aws/codebuild/standard:4.0
         PrivilegedMode: true
         EnvironmentVariables:
+          - Name: APPLICATION_NAME
+            Type: PLAINTEXT
+            Value: !Ref ApplicationName
           - Name: AWS_DEFAULT_REGION
             Type: PLAINTEXT
             Value: !Ref "AWS::Region"
           - Name: AWS_ACCOUNT_ID
             Type: PLAINTEXT
             Value: !Ref "AWS::AccountId"
-          - Name: IMAGE_REPO_NAME
-            Type: PLAINTEXT
-            Value: "demo"
       Source:
         Type: CODEPIPELINE
         BuildSpec: |
@@ -234,19 +234,19 @@ Resources:
                 - echo Logging in to Amazon ECR...
                 - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
                 - export IMAGE_TAG=$(git rev-parse --short HEAD)
-                - echo "IMAGE_TAG= $IMAGE_TAG"
+                - echo "IMAGE_TAG=$IMAGE_TAG"
             build:
               commands:
                 - echo Build started on `date`
                 - echo Building the Docker image...
                 - echo "IMAGE_TAG= $IMAGE_TAG"
-                - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG nodejs-app
-                - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+                - docker build -t $APPLICATION_NAME:$IMAGE_TAG $APPLICATION_NAME
+                - docker tag $APPLICATION_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$APPLICATION_NAME:$IMAGE_TAG
             post_build:
               commands:
                 - echo Build completed on `date`
                 - echo Pushing the Docker image...
-                - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+                - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$APPLICATION_NAME:$IMAGE_TAG
   KubectlDeploy:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -277,6 +277,9 @@ Resources:
           - Name: KAFKA_CLUSTER_NAME
             Type: PLAINTEXT
             Value: !Ref KafkaClusterName
+          - Name: APPLICATION_NAME
+            Type: PLAINTEXT
+            Value: !Ref ApplicationName
       Source:
         Type: CODEPIPELINE
         BuildSpec: |
@@ -290,9 +293,9 @@ Resources:
             build:
               commands:
                 - IMAGE_TAG=$(git rev-parse --short HEAD)
-                - kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='my-app-kafka-cluster'].ClusterArn" --output text)
+                - kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='$KAFKA_CLUSTER_NAME'].ClusterArn" --output text)
                 - kafkaClusterBootstrapBrokers=$(aws kafka get-bootstrap-brokers --cluster-arn $kafkaClusterArn --query "BootstrapBrokerString" --output text | sed 's/,/\\,/g')
-                - helm upgrade -i --debug node-app ./nodejs-app/node-app-helm --set kafka.broker=$kafkaClusterBootstrapBrokers --set imageTag=$IMAGE_TAG --set aws.accountid=$AWS_ACCOUNTID
+                - helm upgrade -i --debug $APPLICATION_NAME ./$APPLICATION_NAME/helm-chart --set kafka.broker=$kafkaClusterBootstrapBrokers --set imageTag=$IMAGE_TAG --set aws.accountid=$AWS_ACCOUNTID --set kafka.clientId=$APPLICATION_NAME --set kafka.groupId=$APPLICATION_NAME
   Pipeline:
     Description: Creating a deployment pipeline for !Ref ApplicationName project in AWS CodePipeline
     Type: 'AWS::CodePipeline::Pipeline'

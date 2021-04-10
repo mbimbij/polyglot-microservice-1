@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: go-app
+  name: go-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-app
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: go-app
+    spec:
+      containers:
+      - image: {{ .Values.aws.accountid }}.dkr.ecr.{{ .Values.aws.region }}.amazonaws.com/demo:{{ .Values.imageTag }}
+        name: go-app
+        ports:
+        - containerPort: {{ .Values.application.port }}
+        env:
+        - name: CLIENT_ID
+          value: {{ .Values.kafka.clientId }}
+        - name: GROUP_ID
+          value: { { .Values.kafka.groupId } }
+        - name: TOPIC
+          value: {{ .Values.kafka.topic }}
+        - name: BROKERS
+          value: {{ .Values.kafka.broker }}

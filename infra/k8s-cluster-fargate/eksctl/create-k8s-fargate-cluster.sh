@@ -49,9 +49,3 @@ helm upgrade -i aws-load-balancer-controller \
     --set image.tag="${LBC_VERSION}" \
     --set region=${AWS_REGION} \
     --set vpcId=${VPC_ID}
-
-eksctl create iamidentitymapping \
-  --cluster $CLUSTER_NAME \
-  --arn arn:aws:iam::$ACCOUNT_ID:role/$APPLICATION_NAME-kubectl-deploy-role \
-  --group system:masters \
-  --username $APPLICATION_NAME-role

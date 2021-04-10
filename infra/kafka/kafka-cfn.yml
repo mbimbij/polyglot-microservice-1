@@ -101,7 +101,7 @@ Resources:
     Properties:
       ImageId: ami-0d3f551818b21ed81
       InstanceType: t2.micro
-      SubnetId: !Select [ "1", !Split [',', !ImportValue 'eksctl-toto-cluster::SubnetsPublic'] ]
+      SubnetId: !Select [ "1", !Split [',', Fn::ImportValue: !Sub '${KubernetesStackName}::SubnetsPublic'] ]
       KeyName: !Ref BastionHostKeyName
       SecurityGroupIds:
         - !GetAtt

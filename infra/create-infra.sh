@@ -6,7 +6,6 @@ if [ -z $1 ]; then
 fi
 
 APPLICATION_NAME=$1
-PIPELINE_NAME=$APPLICATION_NAME-pipeline
 KUBERNETES_CLUSTER_NAME=$APPLICATION_NAME
 KUBERNETES_STACK_NAME=eksctl-$APPLICATION_NAME-cluster
 KAFKA_CLUSTER_NAME=$APPLICATION_NAME-kafka-cluster
@@ -15,10 +14,32 @@ source infra.env
 
 # create cicd pipeline
 aws cloudformation deploy  \
-  --stack-name $PIPELINE_NAME  \
+  --stack-name $APPLICATION_NAME-node-app-pipeline  \
   --template-file pipeline/pipeline-stack.yml  \
   --capabilities CAPABILITY_NAMED_IAM  \
-  --parameter-overrides ApplicationName=$APPLICATION_NAME \
+  --parameter-overrides \
+    ApplicationName=node-app \
+    GithubRepo=$GITHUB_REPO \
+    KubernetesClusterName=$KUBERNETES_CLUSTER_NAME \
+    KafkaClusterName=$KAFKA_CLUSTER_NAME
+aws cloudformation deploy  \
+  --stack-name $APPLICATION_NAME-go-app-pipeline \
+  --template-file pipeline/pipeline-stack.yml  \
+  --capabilities CAPABILITY_NAMED_IAM  \
+  --parameter-overrides \
+    ApplicationName=go-app \
+    GithubRepo=$GITHUB_REPO \
+    KubernetesClusterName=$KUBERNETES_CLUSTER_NAME \
+    KafkaClusterName=$KAFKA_CLUSTER_NAME
+
+# create cicd pipeline
+aws cloudformation deploy  \
+  --stack-name $NODE_APP_PIPELINE_NAME  \
+  --template-file pipeline/pipeline-stack.yml  \
+  --capabilities CAPABILITY_NAMED_IAM  \
+  --parameter-overrides \
+    ApplicationName=$APPLICATION_NAME \
+    MicroservicePathAndName=go-app \
     GithubRepo=$GITHUB_REPO \
     KubernetesClusterName=$KUBERNETES_CLUSTER_NAME \
     KafkaClusterName=$KAFKA_CLUSTER_NAME
@@ -52,11 +73,3 @@ aws cloudformation deploy   \
     KubernetesStackName=$KUBERNETES_STACK_NAME \
     VolumeSize=$volumeSize \
     BastionHostKeyName=$BASTION_HOST_KEY_NAME
-
-# modifying kafka security group
-#eksSecurityGroupId=$(aws cloudformation list-exports --region $AWS_REGION --query "Exports[?Name=='$KUBERNETES_STACK_NAME::ClusterSecurityGroupId'].Value" --output text)
-#kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='$KAFKA_CLUSTER_NAME'].ClusterArn" --output text)
-#kafkaClusterSecurityGroup=$(aws kafka describe-cluster --cluster-arn $kafkaClusterArn --query "ClusterInfo.BrokerNodeGroupInfo.SecurityGroups[]" --output text)
-#bastionHostSecurityGroupId=$(aws cloudformation describe-stacks --stack-name $KAFKA_STACK_NAME --query "Stacks[].Outputs[?OutputKey=='BastionHostSecurityGroupId'].OutputValue[]" --output text)
-#aws ec2 authorize-security-group-ingress --group-id $kafkaClusterSecurityGroup --source-group $eksSecurityGroupId --port 9092 --protocol tcp
-#aws ec2 authorize-security-group-ingress --group-id $kafkaClusterSecurityGroup --source-group $bastionHostSecurityGroupId --port 9092 --protocol tcp
