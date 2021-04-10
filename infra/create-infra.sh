@@ -45,3 +45,8 @@ aws cloudformation deploy   \
     KubernetesStackName=$KUBERNETES_STACK_NAME \
     VolumeSize=$volumeSize \
     BastionHostKeyName=$BASTION_HOST_KEY_NAME
+
+kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='$KAFKA_CLUSTER_NAME'].ClusterArn" --output text)
+kafkaClusterBootstrapBrokers=$(aws kafka get-bootstrap-brokers --cluster-arn $kafkaClusterArn --query "BootstrapBrokerString" --output text | awk -F ',' '{print $1}')
+bastionHostPublicDnsName=$(aws cloudformation describe-stacks --stack-name $KAFKA_STACK_NAME --query "Stacks[].Outputs[?OutputKey=='BastionHostPublicDnsName'][].OutputValue" --output text)
+ssh ubuntu@$bastionHostPublicDnsName "./kafka_2.13-2.7.0/bin/kafka-topics.sh --bootstrap-server $kafkaClusterBootstrapBrokers --create --topic test"
