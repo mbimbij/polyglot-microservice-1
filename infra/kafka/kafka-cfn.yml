@@ -5,6 +5,9 @@ Parameters:
   KubernetesStackName:
     Type: String
     Description: Kakfa Cluster Stack Name
+  NetworkingStackName:
+    Type: String
+    Description: Networking Stack Name
   VolumeSize:
     Type: Number
     Description: Kafka Nodes EBS Volume Size
@@ -17,6 +20,13 @@ Parameters:
   BastionHostKeyName:
     Type: String
     Description: Bastion Host Key Name
+  AddEksSecurityGroup:
+    Description: add eks security group only after eks cluster is created
+    Default: false
+    Type: String
+    AllowedValues: [ true, false ]
+Conditions:
+  AddEksSecurityGroupCondition: !Equals [ !Ref AddEksSecurityGroup, true ]
 
 Resources:
   KakfaCluster:
@@ -59,24 +69,19 @@ Resources:
         ClientSubnets:
           Fn::Split:
             - ','
-            - Fn::ImportValue: !Sub '${KubernetesStackName}::SubnetsPrivate'
+            - Fn::ImportValue: !Sub '${NetworkingStackName}::SubnetsPrivate'
   KafkaClusterSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Kafka Cluster Security Group
       VpcId:
-        Fn::ImportValue: !Sub '${KubernetesStackName}::VPC'
+        Fn::ImportValue: !Sub '${NetworkingStackName}::VPC'
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 0
           ToPort: 65535
           SourceSecurityGroupId: !Ref BastionHostSecurityGroup
-        - IpProtocol: tcp
-          FromPort: 0
-          ToPort: 65535
-          SourceSecurityGroupId:
-            Fn::ImportValue: !Sub '${KubernetesStackName}::ClusterSecurityGroupId'
-  KafkaClusterSecurityGroupSelfIngress:
+  KafkaClusterSecurityGroupIngressSelfIngress:
     Type: AWS::EC2::SecurityGroupIngress
     DependsOn: KafkaClusterSecurityGroup
     Properties:
@@ -85,12 +90,23 @@ Resources:
       ToPort: 65535
       GroupId: !Ref KafkaClusterSecurityGroup
       SourceSecurityGroupId: !Ref KafkaClusterSecurityGroup
+  KafkaClusterSecurityGroupIngressEksCluster:
+    Condition: AddEksSecurityGroupCondition
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: KafkaClusterSecurityGroup
+    Properties:
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      GroupId: !Ref KafkaClusterSecurityGroup
+      SourceSecurityGroupId:
+        Fn::ImportValue: !Sub '${KubernetesStackName}::ClusterSecurityGroupId'
   BastionHostSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Bastion Host security group
       VpcId:
-        Fn::ImportValue: !Sub '${KubernetesStackName}::VPC'
+        Fn::ImportValue: !Sub '${NetworkingStackName}::VPC'
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -101,7 +117,7 @@ Resources:
     Properties:
       ImageId: ami-0d3f551818b21ed81
       InstanceType: t2.micro
-      SubnetId: !Select [ "1", !Split [',', Fn::ImportValue: !Sub '${KubernetesStackName}::SubnetsPublic'] ]
+      SubnetId: !Select [ "1", !Split [',', Fn::ImportValue: !Sub '${NetworkingStackName}::SubnetsPublic'] ]
       KeyName: !Ref BastionHostKeyName
       SecurityGroupIds:
         - !GetAtt

@@ -3,23 +3,31 @@
 CLUSTER_NAME=$1
 APPLICATION_NAME=$1
 
+PRIVATE_SUBNETS=$2
+PUBLIC_SUBNETS=$3
+
 echo "CLUSTER_NAME: $CLUSTER_NAME"
 echo "ACCOUNT_ID: $ACCOUNT_ID"
 echo "AWS_PROFILE: $AWS_PROFILE"
 echo "APPLICATION_NAME: $APPLICATION_NAME"
 echo "LBC_VERSION: $LBC_VERSION"
+echo "PRIVATE_SUBNETS: $PRIVATE_SUBNETS"
+echo "PUBLIC_SUBNETS: $PUBLIC_SUBNETS"
 
-eksctl create cluster --name $CLUSTER_NAME --region $AWS_REGION --fargate
+eksctl create cluster --name $CLUSTER_NAME --region $AWS_REGION \
+  --vpc-private-subnets=$PRIVATE_SUBNETS \
+  --vpc-public-subnets=$PUBLIC_SUBNETS \
+  --fargate --with-oidc
 
-eksctl create fargateprofile \
-  --cluster ${CLUSTER_NAME} \
-  --name $APPLICATION_NAME \
-  --namespace $APPLICATION_NAME
+#eksctl create fargateprofile \
+#  --cluster ${CLUSTER_NAME} \
+#  --name $APPLICATION_NAME \
+#  --namespace $APPLICATION_NAME
 
-eksctl utils associate-iam-oidc-provider \
-    --region ${AWS_REGION} \
-    --cluster ${CLUSTER_NAME} \
-    --approve
+#eksctl utils associate-iam-oidc-provider \
+#    --region ${AWS_REGION} \
+#    --cluster ${CLUSTER_NAME} \
+#    --approve
 
 aws iam create-policy     --policy-name AWSLoadBalancerControllerIAMPolicy     --policy-document file://iam_policy.json
 
