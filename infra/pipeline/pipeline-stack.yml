@@ -350,3 +350,7 @@ Resources:
               Configuration:
                 ProjectName:
                   Ref: KubectlDeploy
+  EcrRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref ApplicationName
