@@ -32,8 +32,8 @@ echo "PUBLIC_SUBNETS: $PUBLIC_SUBNETS"
 cd ../..
 
 # create cicd pipelines
-nohup pipeline/create-microservice-pipeline.sh node-app &
-nohup pipeline/create-microservice-pipeline.sh go-app &
+pipeline/create-microservice-pipeline.sh node-app
+pipeline/create-microservice-pipeline.sh go-app
 
 wait
 echo "kafka, k8 clusters, microservices pipelines creation done"
@@ -42,10 +42,6 @@ echo "##########################################################################
 echo "updating kafka sg: adding eks security group as an authorized ingress"
 echo "##############################################################################"
 nohup kafka/create-kafka-cluster.sh true &
-#eksSecurityGroupId=$(aws cloudformation list-exports --region $AWS_REGION --query "Exports[?Name=='$KUBERNETES_STACK_NAME::ClusterSecurityGroupId'].Value" --output text)
-#kafkaClusterArn=$(aws kafka list-clusters --query "ClusterInfoList[?ClusterName=='$KAFKA_CLUSTER_NAME'].ClusterArn" --output text)
-#kafkaClusterSecurityGroup=$(aws kafka describe-cluster --cluster-arn $kafkaClusterArn --query "ClusterInfo.BrokerNodeGroupInfo.SecurityGroups[]" --output text)
-#aws ec2 authorize-security-group-ingress --group-id $kafkaClusterSecurityGroup --source-group $eksSecurityGroupId --port 9092 --protocol tcp
 
 echo "##############################################################################"
 echo "creating kafka topic 'test'"

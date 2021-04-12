@@ -13,6 +13,8 @@ source infra.env
 # delete cicd pipeline
 aws s3 rm s3://$AWS_REGION-$ACCOUNT_ID-node-app-bucket-pipeline --recursive
 aws s3 rm s3://$AWS_REGION-$ACCOUNT_ID-go-app-bucket-pipeline --recursive
+./scripts/empty-ecr-repository.sh $APPLICATION_NAME-node-app
+./scripts/empty-ecr-repository.sh $APPLICATION_NAME-go-app
 aws cloudformation delete-stack --stack-name $APPLICATION_NAME-node-app-pipeline
 aws cloudformation delete-stack --stack-name $APPLICATION_NAME-go-app-pipeline
 

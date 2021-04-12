@@ -18,7 +18,7 @@ spec:
         app: node-app
     spec:
       containers:
-      - image: {{ .Values.aws.accountid }}.dkr.ecr.{{ .Values.aws.region }}.amazonaws.com/node-app:{{ .Values.imageTag }}
+      - image: {{ .Values.imageUrl }}:{{ .Values.imageTag }}
         name: node-app
         ports:
         - containerPort: {{ .Values.application.port }}

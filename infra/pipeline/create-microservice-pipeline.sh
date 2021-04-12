@@ -2,12 +2,16 @@
 
 MICROSERVICE_NAME=$1
 
+STACK_NAME=$APPLICATION_NAME-$MICROSERVICE_NAME-pipeline
+echo "STACK_NAME: $STACK_NAME"
+
 aws cloudformation deploy  \
-  --stack-name $APPLICATION_NAME-$MICROSERVICE_NAME-pipeline \
+  --stack-name $STACK_NAME \
   --template-file pipeline/pipeline-stack.yml  \
   --capabilities CAPABILITY_NAMED_IAM  \
   --parameter-overrides \
-    ApplicationName=$MICROSERVICE_NAME \
+    ApplicationName=$APPLICATION_NAME \
+    MicroserviceName=$MICROSERVICE_NAME \
     GithubRepo=$GITHUB_REPO \
     KubernetesClusterName=$KUBERNETES_CLUSTER_NAME \
     KafkaClusterName=$KAFKA_CLUSTER_NAME

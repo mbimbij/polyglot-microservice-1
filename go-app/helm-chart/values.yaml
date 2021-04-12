@@ -3,10 +3,6 @@ application:
     port: 80
   port: 8080
 
-aws:
-  region: eu-west-3
-  accountid: 112233445566
-
 kafka:
   broker: 'unset'
   topic: test
