@@ -18,6 +18,9 @@
 
 # :fr: Description du projet
 
+:warning: les registry ECR n'ont pas encore été intégré au code d'infra, ont été créés manuellement et l'oubli de leur automatisation est passée sous la vigilance de l'auteur.
+Correction prévue pour le 13/04/2021.
+
 Le but de ce projet est de s'essayer à implémenter un microservice "polyglotte": 
 
 - 1 service en `NodeJS`
@@ -61,11 +64,13 @@ Tout est créé "en un seul click".
 
 # :gb: Project Description
 
+:warning: ECR registries are not yet integrated to infrastructure code, they have been created manually and the author did not realize it until recently.
+ETA for a correction: 2021/04/13 (April the 13th).
+
 The goal of this project si to try to implement a "polyglot" microservice:
 
 - 1 service in `NodeJS`
 - 1 service in `Go`
-
 
 The `NodeJs` service exposes a REST and produces events in a `Kafka` topic every time the API is called (we use the AWS MSK managed service for that purpose).
 
