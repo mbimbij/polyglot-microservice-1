@@ -23,9 +23,10 @@ Le but de ce projet est de s'essayer à implémenter un microservice "polyglotte
 - 1 service en `NodeJS`
 - 1 service en `Go`
 
-Le service `NodeJs` expose un endpoint REST et produit des events dans un topic Kafka (on utilise la solution d'AWS `MSK`) à chaque appel. 
+Le service `NodeJs` expose un endpoint REST et produit des events dans un topic Kafka (on utilise la solution d'AWS `MSK`) à chaque appel.
 
 Le service `Go` consomme les events et les affiche dans la console.
+![](docs/archi.png)
 
 Les services tournent dans un cluster Kubernetes managé par AWS ("EKS"), avec la pipeline de déploiement CI/CD correspondante.
 
@@ -41,7 +42,27 @@ Tout est créé "en un seul click".
 6. Créer l'infra via `./create-infra.sh $infra-name`
 7. Activez les connexions github pour les pipelines des microservices node et go
 ![](docs/github-connections-activation.png)
-8. Supprimer l'infra via `./delete-infra.sh $infra-name`
+   
+8. sur les 2 pipelines des applications node et go, relancez une release ou réessayez le stage "Source", vous devriez avoir une pipeline verte au final
+![](docs/2.node-app-pipeline-ok.png)
+   
+9. vérifiez que les déploiements Kubernetes sont bien créé
+![](docs/3.list-deployments.png)
+   
+10. vérifiez que l'ingress du service associée à l'application node est up, et récupérez son url publique
+![](docs/4.get-ingress.png)
+    
+11. lancez un curl sur cette url et récupérez l'id de l'event Kafka envoyé
+![](docs/5.curl-ingress.png)
+    
+12. en attendant que l'aggrégation de logs soit en place, récupérez les logs de chacun des pods et vérifier que l'id de l'event Kafka y figure bien.
+
+![](docs/6.get-go-app-logs.png)
+
+On notera qu'il y a beaucoup d'autres logs, ceux-ci sont dûs aux requêtes de health check du target group du load balancer associé à l'ingress, qui provoque aussi des envois d'events Kafka.
+    
+Félicitations, toute l'infra, les pipelines, les applis et les déploiements fonctionnent parfaitement, et on a une bonne base pour commencer à itérer dessus. 
+13. Supprimer l'infra via `./delete-infra.sh $infra-name`
 
 ## pièges rencontrés
 
@@ -69,6 +90,7 @@ The goal of this project si to try to implement a "polyglot" microservice:
 The `NodeJs` service exposes a REST and produces events in a `Kafka` topic every time the API is called (we use the AWS MSK managed service for that purpose).
 
 The `Go` service consumes the events and displays them in the console.
+![](docs/archi.png)
 
 The services run in a `Kubernetes` cluster, managed by AWS (we use a `Fargate` backed EKS cluste), along with the corresponding CI/CD pipeline.
 
@@ -84,7 +106,26 @@ Everything is created in a "single click" fashion.
 6. Create the infrastructure with `./create-infra.sh $infra-name`
 7. Activate github connections for node and go microservices
    ![](docs/github-connections-activation.png)
-8. Delete the infrastructure with `./delete-infra.sh $infra-name` 
+   
+8. on both pipelines, start a new release or retry the "source" stage. You should have a green pipeline in the end
+   ![](docs/2.node-app-pipeline-ok.png)
+   
+9. verify that Kubernetes deployments are created
+   ![](docs/3.list-deployments.png)
+   
+10. verify that the ingress associated with the node service is up, and get its public URL back
+    ![](docs/4.get-ingress.png)
+    
+11. execute a curl command on this URL and get the id of the sent Kafka message
+    ![](docs/5.curl-ingress.png)
+    
+12. until logs aggregation is set up, get the logs of both go app pods and verify that the id of the kafka message is indeed present
+    ![](docs/6.get-go-app-logs.png)
+    
+We will notice that there are many other logs, they are from the target group health check request, associated to the load balancer of the ingress, which causes many other logs. But that not much important at the moment and for the scope of this pet project.
+
+Congratulation, all the infra, the pipelines, the apps and the deployments work perfectly, and it's a good base to start iterating on.
+13. Delete the infrastructure with `./delete-infra.sh $infra-name` 
 
 ## encountered traps
 
