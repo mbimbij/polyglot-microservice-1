@@ -85,6 +85,7 @@ Félicitations, toute l'infra, les pipelines, les applis et les déploiements fo
 - Mettre en cache les dépendances node et go dans les projets `CodeBuild` correspondant pour accélérer l'étape de build
 - Faire en sorte de pull une image les images docker publiques depuis un registry privé: via un registry ayant une fonctionnalité de "pull through cache" ou alors en le mettant en place manuellement ("pull through cache" non disponible dans ECR au 13/04/2021). Cela afin d'éviter de se prendre des erreurs de rate limiting de la part de Docker Hub
 - Mettre un cache ou utiliser une image `CodeBuild` custom pour ne pas avoir à télécharger et installer `Helm` à chaque déploiement.
+- Variabiliser certains éléments de la stack réseau: nb de sous-réseaux, de couches réseau (au-dela de public / privé), de AZs, les CIDRs des sous-réseaux, le nombre de NAT gateways, etc. au lieu des valeurs en dur présentes actuellement
 - Voir la suite après
 
 # :gb: Project Description
@@ -152,4 +153,5 @@ Congratulation, all the infra, the pipelines, the apps and the deployments work 
 - Setup a cache for node and go dependencies in `CodeBuild` projects to speed up builds
 - Setup a cache and use a custom `CodeBuild` image to avoiding downloading and installing `Helm` at every deployment
 - Pull public docker images from a private registry instead of DockerHub, either through a "pull through cache" feature of some private docker registries, or somehow manually (a lambda maybe), to avoid being throttled by DockerHub("pull through cache" feature unavailable on ECR on the 2021/04/13).
+- Variabilize some elements of the network stack: nb of subnets, of AZs, CIDRs for each subnets, nb of NAT gateways, etc. and auto-generate some, instead of currently hard-coded values
 - Figure out next step afterwards
